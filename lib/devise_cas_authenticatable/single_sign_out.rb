@@ -36,12 +36,12 @@ module DeviseCasAuthenticatable
           session = current_session_store::Session.find_by_session_id(sid)
           session.destroy if session
           true
-        elsif session_store_class.name =~ /RedisSessionStore/
+        elsif session_store_class.name =~ /Redis.*Store/
           current_session_store.instance_variable_get(:@pool).del(sid)
           true
         else
-          log.error "Cannot process logout request because this Rails application's session store is "+
-                " #{current_session_store.name.inspect} and is not a support session store type for Single Sign-Out."
+          ::Rails.logger.error "Cannot process logout request because this Rails application's session store is "+
+                " #{current_session_store.class.to_s} and is not a support session store type for Single Sign-Out."
           false
         end
       end

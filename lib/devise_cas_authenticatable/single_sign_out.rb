@@ -24,7 +24,7 @@ module DeviseCasAuthenticatable
       end
 
       def current_session_store
-        app = Rails.application.app
+        app = get_first_middleware_app
         begin
           app = app.instance_variable_get :@app
         end until app.nil? or app.class == session_store_class
@@ -44,6 +44,20 @@ module DeviseCasAuthenticatable
                 " #{current_session_store.class.to_s} and is not a support session store type for Single Sign-Out."
           false
         end
+      end
+      
+      private
+      
+      def get_first_middleware_app
+        # For case of running in production mode.
+        @first_middleware_app ||= if Rails.application.app.class == Rack::Cache::Context
+                                    Rails.application.app.
+                                      entitystore.instance_variable_get(:@store).
+                                      instance_variable_get(:@middleware).instance_variable_get(:@app)
+                                  else
+                                    Rails.application.app
+                                  end
+                                  
       end
     end
 
